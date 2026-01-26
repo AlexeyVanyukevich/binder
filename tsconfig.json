@@ -3,15 +3,9 @@
         "target": "es2023",
         "module": "commonjs",
         "strict": true,
-        "lib": ["ES2023"],
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "sourceMap": true,
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["src/*"]
-        },
+        "noEmit": true,
+        "moduleResolution": "node"
     },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+    "include": ["src/**/*", "eslint-rules"],
+    "exclude": ["node_modules"]
 }

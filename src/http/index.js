@@ -1,10 +1,13 @@
-const http = require('node:http');
-const { router: createRouter } = require('./router');
-const { requestListener: createRequestListener } = require('./request-listener');
+const http = require("node:http");
+const { router: createRouter } = require("./router");
+const {
+  requestListener: createRequestListener,
+} = require("./request-listener");
 
 /**
  * @typedef {import('.').Server} Server
  * @typedef {import('./router').Router} Router
+ * @typedef {import('.').ListenCallback} ListenCallback
  */
 
 /**
@@ -24,10 +27,11 @@ const server = (router) => {
    * Starts the server and listens on the given port.
    *
    * @param {number} port - The port on which the server will listen.
+   * @param {ListenCallback} [callback] - Optional callback invoked when the server starts listening.
    * @returns {void}
    */
-  const listen = (port) => {
-    server.listen(port);
+  const listen = (port, callback) => {
+    server.listen(port, callback);
   };
 
   return { ...router, listen };

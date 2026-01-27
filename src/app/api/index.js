@@ -1,6 +1,18 @@
-const { createRouter } = require('../../http/router');
+const { router: createRouter } = require("../../http/router");
 
-const apiRouter = createRouter();
+/**
+ * Creates and configures the API router.
+ * @param {ConfigObject} config - The application configuration object.
+ * @returns {Router} The configured API router.
+ */
+const apiRouter = (config) => {
+  const router = createRouter();
 
+  router.get("/hello", async (req, res) => {
+    res.text("Hello, World! from API");
+  });
 
-module.exports = apiRouter;
+  return router;
+};
+
+module.exports = { apiRouter };

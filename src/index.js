@@ -6,10 +6,13 @@ const appConfig = setup(cfg, '', {
 });
 
 const { server: createServer } = require('./http');
-const app = require('./app');
+const { appRouter} = require('./app');
 
+const app = appRouter(appConfig);
 const server = createServer(app);
 
 server.use
 
-server.listen(appConfig.port);
+server.listen(appConfig.port, () => {
+  console.log(`Server is listening on port ${appConfig.port}`);
+});

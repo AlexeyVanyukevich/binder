@@ -1,5 +1,4 @@
+import { ConfigObject } from "../config";
 import { Router } from "../http/router";
 
-declare const router: Router;
-
-export = router;
+export declare function appRouter(config: ConfigObject): Router;

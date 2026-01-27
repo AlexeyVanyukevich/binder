@@ -2,8 +2,13 @@ const { router: createRouter } = require("../http/router");
 const { apiRouter: creataApiRouter } = require("./api");
 
 /**
+ * @typedef {import('../http/router').Router} Router
+ * @typedef {import('../config').Config} Config
+ */
+
+/**
  * Creates and configures the main application router.
- * @param {ConfigObject} config - The application configuration object.
+ * @param {Config} config - The application configuration object.
  * @returns {Router} The configured application router.
  */
 const appRouter = (config) => {

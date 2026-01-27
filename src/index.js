@@ -1,17 +1,20 @@
-const { createDefaultConfig, setup } = require('./config');
+/**
+ * @typedef {import('.').AppConfig} AppConfig
+ */
+
+const { createDefaultConfig } = require("./config");
 const cfg = createDefaultConfig();
 
-const appConfig = setup(cfg, '', {
-  port: 'number'
+/** @type {AppConfig} */
+const appConfig = cfg.setup({
+  port: "number",
 });
 
-const { server: createServer } = require('./http');
-const { appRouter} = require('./app');
+const { server: createServer } = require("./http");
+const { appRouter } = require("./app");
 
-const app = appRouter(appConfig);
+const app = appRouter(cfg);
 const server = createServer(app);
-
-server.use
 
 server.listen(appConfig.port, () => {
   console.log(`Server is listening on port ${appConfig.port}`);

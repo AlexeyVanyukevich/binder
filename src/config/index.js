@@ -1,5 +1,6 @@
-const { mergeProviders } = require('./provider');
-const { section: createSection } = require('./section');
+const { mergeProviders } = require("./provider");
+const { section: createSection } = require("./section");
+const { setup: setupFunc } = require("./setup");
 
 /**
  * @typedef {import('.').Config} Config
@@ -20,12 +21,16 @@ const { section: createSection } = require('./section');
  * @returns {ConfigValue | ConfigObject | undefined}
  */
 const getNestedValue = (obj, key) => {
-  const segments = key.split('.').filter(Boolean);
+  const segments = key.split(".").filter(Boolean);
   /** @type {ConfigValue | ConfigObject | undefined} */
   let current = obj;
 
   for (const segment of segments) {
-    if (current === null || current === undefined || typeof current !== 'object') {
+    if (
+      current === null ||
+      current === undefined ||
+      typeof current !== "object"
+    ) {
       return undefined;
     }
     current = /** @type {ConfigObject} */ (current)[segment];
@@ -35,40 +40,13 @@ const getNestedValue = (obj, key) => {
 };
 
 /**
- * Converts a value to the specified type
- * @param {ConfigValue} value - The value to convert
- * @param {'string' | 'number' | 'boolean'} type - Target type
- * @returns {ConfigValue}
- */
-const coerceValue = (value, type) => {
-  if (value === undefined || value === null) {
-    return value;
-  }
-
-  switch (type) {
-    case 'number': {
-      const num = Number(value);
-      return isNaN(num) ? value : num;
-    }
-    case 'boolean': {
-      if (typeof value === 'boolean') return value;
-      if (value === 'true' || value === '1') return true;
-      if (value === 'false' || value === '0') return false;
-      return value;
-    }
-    default:
-      return String(value);
-  }
-};
-
-/**
  * Validates configuration against a schema
  * @param {ConfigObject} data - Configuration data
  * @param {ConfigSchema} schema - Schema to validate against
  * @param {string} [prefix=''] - Key prefix for nested validation
  * @returns {ConfigValidationError[]}
  */
-const validateSchema = (data, schema, prefix = '') => {
+const validateSchema = (data, schema, prefix = "") => {
   /** @type {ConfigValidationError[]} */
   const errors = [];
 
@@ -77,7 +55,7 @@ const validateSchema = (data, schema, prefix = '') => {
     const value = getNestedValue(data, key);
 
     // Check if it's a nested schema
-    if (!('type' in fieldDef)) {
+    if (!("type" in fieldDef)) {
       const nestedData = /** @type {ConfigObject} */ (value) || {};
       errors.push(
         ...validateSchema(
@@ -104,7 +82,7 @@ const validateSchema = (data, schema, prefix = '') => {
     // Check type
     if (value !== undefined && value !== null) {
       const actualType = typeof value;
-      if (field.type !== 'object' && actualType !== field.type) {
+      if (field.type !== "object" && actualType !== field.type) {
         const coerced = coerceValue(value, field.type);
         if (typeof coerced !== field.type) {
           errors.push({
@@ -143,16 +121,22 @@ const applyDefaults = (data, schema) => {
     const value = result[key];
 
     // Handle nested schema
-    if (!('type' in fieldDef)) {
+    if (!("type" in fieldDef)) {
       const nestedData = /** @type {ConfigObject} */ (value) || {};
-      result[key] = applyDefaults(nestedData, /** @type {ConfigSchema} */ (fieldDef));
+      result[key] = applyDefaults(
+        nestedData,
+        /** @type {ConfigSchema} */ (fieldDef)
+      );
       continue;
     }
 
     const field = /** @type {ConfigSchemaField} */ (fieldDef);
 
     // Apply default if value is missing
-    if ((value === undefined || value === null) && field.default !== undefined) {
+    if (
+      (value === undefined || value === null) &&
+      field.default !== undefined
+    ) {
       result[key] = field.default;
     }
   }
@@ -187,7 +171,7 @@ const config = (options = {}) => {
     const value = getNestedValue(data, key);
 
     // If it's an object, return undefined (use getSection for objects)
-    if (value !== null && typeof value === 'object') {
+    if (value !== null && typeof value === "object") {
       return undefined;
     }
 
@@ -233,7 +217,7 @@ const config = (options = {}) => {
   const getSection = (key) => {
     const sectionData = getNestedValue(data, key);
     const sectionObj =
-      typeof sectionData === 'object' && sectionData !== null
+      typeof sectionData === "object" && sectionData !== null
         ? /** @type {ConfigObject} */ (sectionData)
         : {};
 
@@ -249,7 +233,7 @@ const config = (options = {}) => {
   const bind = (key) => {
     const sectionData = getNestedValue(data, key);
 
-    if (typeof sectionData !== 'object' || sectionData === null) {
+    if (typeof sectionData !== "object" || sectionData === null) {
       return /** @type {T} */ ({});
     }
 
@@ -285,6 +269,22 @@ const config = (options = {}) => {
     return validateSchema(data, schema);
   };
 
+  /**   * Sets up configuration binding with schema
+   * @template {ConfigObject} T
+   * @param {string | SetupSchema<T>} keyOrSchema - Section key or schema
+   * @param {SetupSchema<T> | SetupOptions} [schemaOrOptions] - Schema or options
+   * @param {SetupOptions} [options={}] - Setup options
+   * @returns {T}
+   */
+  const setup = (keyOrSchema, schemaOrOptions, options = {}) => {
+    const runKey = typeof keyOrSchema === "string" ? keyOrSchema : "";
+    const runSchema =
+      typeof keyOrSchema === "string" ? schemaOrOptions : keyOrSchema;
+    const runOptions =
+      typeof keyOrSchema === "string" ? options : schemaOrOptions;
+    return setupFunc(configInstance, runKey, runSchema, runOptions);
+  };
+
   /**
    * @type {Config}
    */
@@ -297,15 +297,16 @@ const config = (options = {}) => {
     has,
     toObject,
     validate,
+    setup,
   };
 
   // Validate on creation if throwOnMissing is true
   if (throwOnMissing && schema) {
     const errors = validate();
-    const requiredErrors = errors.filter((e) => e.message.includes('Required'));
+    const requiredErrors = errors.filter((e) => e.message.includes("Required"));
     if (requiredErrors.length > 0) {
       throw new Error(
-        `Configuration validation failed:\n${requiredErrors.map((e) => e.message).join('\n')}`
+        `Configuration validation failed:\n${requiredErrors.map((e) => e.message).join("\n")}`
       );
     }
   }
@@ -313,9 +314,9 @@ const config = (options = {}) => {
   return configInstance;
 };
 
-const { envProvider } = require('./provider/env');
-const { jsonProvider } = require('./provider/json');
-const { dotenvProvider } = require('./provider/dotenv');
+const { envProvider } = require("./provider/env");
+const { jsonProvider } = require("./provider/json");
+const { dotenvProvider } = require("./provider/dotenv");
 
 /**
  * Creates a configuration with default providers
@@ -327,109 +328,10 @@ const createDefaultConfig = () => {
   });
 };
 
-/**
- * @typedef {import('.').SetupSchema<T>} SetupSchema
- * @template T
- */
-
-/**
- * @typedef {import('.').SetupOptions} SetupOptions
- */
-
-/**
- * Coerces a value to the target type
- * @param {ConfigValue} value - The value to coerce
- * @param {'string' | 'number' | 'boolean'} targetType - Target type
- * @returns {ConfigValue}
- */
-const coerceToType = (value, targetType) => {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-
-  switch (targetType) {
-    case 'number': {
-      const num = Number(value);
-      return isNaN(num) ? undefined : num;
-    }
-    case 'boolean': {
-      if (typeof value === 'boolean') return value;
-      if (value === 'true' || value === '1') return true;
-      if (value === 'false' || value === '0') return false;
-      return undefined;
-    }
-    case 'string':
-    default:
-      return String(value);
-  }
-};
-
-/**
- * Recursively applies schema to build typed object
- * @param {ConfigObject} data - Source data
- * @param {Record<string, any>} schema - Schema definition
- * @param {string} path - Current path for error messages
- * @param {boolean} required - Whether to throw on missing
- * @returns {ConfigObject}
- */
-const applySetupSchema = (data, schema, path, required) => {
-  /** @type {ConfigObject} */
-  const result = {};
-
-  for (const [key, typeOrNested] of Object.entries(schema)) {
-    const value = data[key];
-    const fullPath = path ? `${path}.${key}` : key;
-
-    if (typeof typeOrNested === 'object') {
-      // Nested schema
-      const nestedData =
-        typeof value === 'object' && value !== null
-          ? /** @type {ConfigObject} */ (value)
-          : {};
-      result[key] = applySetupSchema(nestedData, typeOrNested, fullPath, required);
-    } else {
-      // Primitive type
-      const coerced = coerceToType(/** @type {ConfigValue} */ (value), typeOrNested);
-
-      if (coerced === undefined && required) {
-        throw new Error(`Required configuration key "${fullPath}" is missing or invalid`);
-      }
-
-      result[key] = coerced;
-    }
-  }
-
-  return result;
-};
-
-/**
- * Binds configuration to a typed object with automatic type coercion
- * @template {ConfigObject} T
- * @param {Config} cfg - The configuration instance
- * @param {string} key - The section key (use empty string for root)
- * @param {Record<string, any>} schema - Object defining the shape and types
- * @param {SetupOptions} [options={}] - Setup options
- * @returns {T}
- *
- * @example
- * const dbConfig = setup(config, 'database', {
- *   host: 'string',
- *   port: 'number',
- *   ssl: 'boolean'
- * });
- */
-const setup = (cfg, key, schema, options = {}) => {
-  const { required = false } = options;
-
-  const data = key ? cfg.bind(key) : cfg.toObject();
-
-  return /** @type {T} */ (applySetupSchema(data, schema, key, required));
-};
 
 module.exports = {
   config,
   createDefaultConfig,
-  setup,
   envProvider,
   jsonProvider,
   dotenvProvider,

@@ -1,14 +1,13 @@
 /**
- * @typedef {import('.').AppConfig} AppConfig
+ * @typedef {import('./schema/app-config').AppConfig} AppConfig
  */
 
 const { createDefaultConfig } = require("./config");
+const { appConfigSchema } = require("./schema/app-config");
 const cfg = createDefaultConfig();
 
 /** @type {AppConfig} */
-const appConfig = cfg.setup({
-  port: "number",
-});
+const appConfig = cfg.setup(appConfigSchema);
 
 const { server: createServer } = require("./http");
 const { appRouter } = require("./app");

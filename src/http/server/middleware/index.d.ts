@@ -1,4 +1,4 @@
-import { Handler as RouteHandler } from '../route';
+import type { Handler as RouteHandler } from '../route';
 
 export type Handler = () => Promise<void> | void | undefined;
 

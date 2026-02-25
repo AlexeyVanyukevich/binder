@@ -1,4 +1,4 @@
-import { Route, Handler } from "../route";
+import { Handler } from "../route";
 import { Middleware } from "../middleware";
 
 export interface Router {
@@ -49,11 +49,9 @@ export interface Router {
    * @param middleware - The middleware function to register.
    */
   use(middleware: Middleware): void;
+
+  handle: Handler;
 }
 
-export interface InternalRouter extends Router {
-  _routes: Route[];
-  _middlewares: Middleware[];
-}
 
 export declare function router(): Router;

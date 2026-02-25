@@ -1,37 +1,17 @@
-/**
- * @typedef {import('./method').Method} Method
- * @typedef {import('.').Params} Params
- * @typedef {import('.').Request} Request
- * @typedef {import('node:http').IncomingMessage} IncomingMessage
- * @typedef {import('.').ParseBodyOptions} ParseBodyOptions
- * @typedef {import('node:http').IncomingHttpHeaders} IncomingHttpHeaders
- */
-
 const MAX_BODY_SIZE = 1024 * 1024; // 1MB limit
 
 /**
- * A function to map `IncomingMessage` to a custom `Request` type.
+ * @typedef {import('.').ParseBodyOptions} ParseBodyOptions
+ * @typedef {import('.').ServerRequest} ServerRequest
+ * @typedef {import('node:http').IncomingMessage} IncomingMessage
+ */
+
+/**
  * @param {IncomingMessage} incomingMessage
- * @returns {Request}
+ * @returns {ServerRequest}
  */
 const request = (incomingMessage) => {
-  /** @type {Method | undefined} */
-  const method = incomingMessage.method
-    ? /** @type {Method} */ (incomingMessage.method)
-    : undefined;
-
-  /** @type {string} */
-  const url = incomingMessage.url ?? "/";
-
-  /** @type {Params} */
-  const params = {};
-
-  /** @type {IncomingMessage} */
-  const raw = incomingMessage;
-
-  /** @type {IncomingHttpHeaders} */
-  const headers = incomingMessage.headers;
-
+  const url = new URL(incomingMessage.url ?? "/");
   /**
    * Retrieves and parses the request body.
    * @param {ParseBodyOptions} [options]
@@ -68,8 +48,20 @@ const request = (incomingMessage) => {
     });
   };
 
-  return { method, url, params, headers, raw, getBody };
-};
+  const result = {
+    getBody,
+    get method() {
+      return incomingMessage.method;
+    },
+    get url() {
+      return url;
+    },
+    get headers() {
+      return incomingMessage.headers;
+    },
+  };
 
+  return result;
+};
 
 module.exports = { request };

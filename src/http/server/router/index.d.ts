@@ -1,6 +1,8 @@
 import { Handler } from "../route";
 import { Middleware } from "../middleware";
 
+export type RouterFactory = (router: Router) => void;
+
 export interface Router {
   /**
    * Registers a GET route handler for a given path.
@@ -42,7 +44,7 @@ export interface Router {
    * @param basePath - The base path where the sub-router will be mounted.
    * @param router - The router instance to mount.
    */
-  use(basePath: string, router: Router): void;
+  use(basePath: string, router: Router | RouterFactory): void;
 
   /**
    * Registers a middleware function to run before route handlers.
@@ -54,4 +56,4 @@ export interface Router {
 }
 
 
-export declare function router(): Router;
+export declare function router(prefix?: string): Router;

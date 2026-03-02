@@ -1,5 +1,6 @@
 /**
  * @typedef {import('.').Router} Router
+ * @typedef {import('.').RouterFactory} RouterFactory
  * @typedef {import('../middleware').Middleware} Middleware
  * @typedef {import('../route').Handler} RouteHandler
  * @typedef {import('../../request/method').Method} Method
@@ -15,7 +16,7 @@ const { matcher } = require("../request/params");
  * and processed in registration order. The first matching route wins.
  * @returns {Router}
  */
-const router = () => {
+const router = (prefix = "") => {
   /** @type {Middleware[]} */
   const queue = [];
 
@@ -26,7 +27,7 @@ const router = () => {
    * @param {RouteHandler} handler - The function to handle requests matching the method and path.
    */
   const addRoute = (method, path, handler) => {
-    const { test, extract } = matcher(path);
+    const { test, extract } = matcher(prefix + path);
 
     queue.push(async (request, response, next) => {
       const pathname = request.url.pathname;
@@ -70,7 +71,7 @@ const router = () => {
   const addRouter = (basePath, router) => {
     queue.push(async (request, response, next) => {
       const pathname = request.url.pathname;
-      if (pathname.startsWith(basePath)) {
+      if (pathname.startsWith(prefix + basePath)) {
         await router.handle(request, response);
       } else {
         await next?.();
@@ -81,10 +82,14 @@ const router = () => {
   /**
    * Registers a middleware or mounts a sub-router.
    * @param {string | Middleware} firstArg - Base path or middleware function.
-   * @param {Router} [subRouter] - Router instance when firstArg is a path.
+   * @param {Router | RouterFactory} [routerOrFactory] - Optional router instance or factory function to mount if the first argument is a base path.
    */
-  const use = (firstArg, subRouter) => {
-    if (typeof firstArg === "string" && subRouter) {
+  const use = (firstArg, routerOrFactory) => {
+    if (typeof firstArg === "string" && routerOrFactory) {
+      const subRouter = router(prefix + firstArg);
+      if (typeof routerOrFactory === "function") {
+        routerOrFactory(subRouter);
+      }
       addRouter(firstArg, subRouter);
     } else if (typeof firstArg === "function") {
       addMiddleware(firstArg);

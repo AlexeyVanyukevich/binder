@@ -1,4 +1,4 @@
 import { Config } from "../../config";
-import { Router } from "../../http/router";
+import { RouterFactory } from "../../http/server/router";
 
-export declare function apiRouter(config: Config): Router;
+export declare function apiRouter(config: Config): RouterFactory;

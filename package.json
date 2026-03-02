@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon sec/index.js",
+    "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "type-check": "tsc --noEmit",
     "lint": "eslint . && prettier -c \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\"",

@@ -7,17 +7,21 @@ const {
 /**
  * @typedef {import('.').Server} Server
  * @typedef {import('./router').Router} Router
+ * @typedef {import('./router').RouterFactory} RouterFactory
  * @typedef {import('.').ListenCallback} ListenCallback
  */
 
 /**
  * Creates a new HTTP server with a router and request listener.
- * @param {Router} [router] - The router to handle incoming requests.
+ * @param {Router | RouterFactory} [routerOrFactory] - The router or router factory to handle incoming requests.
  * @returns {Server} The server object with a listen method and router functionality.
  */
-const server = (router) => {
-  if (!router) {
-    router = createRouter();
+const server = (routerOrFactory) => {
+  let router;
+  if (typeof routerOrFactory === "function") {
+    router = routerOrFactory(createRouter());
+  } else {
+    router = routerOrFactory || createRouter();
   }
   const requestListener = createRequestListener(router);
 

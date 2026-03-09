@@ -1,0 +1,1 @@
+export declare const DEFAUTL_ID_FIELD = "id";

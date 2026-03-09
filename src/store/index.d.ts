@@ -2,10 +2,10 @@ export interface StoreOptions {
   idField?: string;
 }
 
-export interface Store<T> {
+export interface Store<T, TId = string> {
   create(item: Partial<T>): T;
-  get(id: string): Promise<T | undefined>;
+  get(id: TId): Promise<T | undefined>;
   list(): Promise<T[]>;
-  update(id: string, updates: Partial<T>): Promise<T | undefined>;
-  delete(id: string): Promise<boolean>;
+  update(id: TId, updates: Partial<T>): Promise<T | undefined>;
+  delete(id: TId): Promise<boolean>;
 }

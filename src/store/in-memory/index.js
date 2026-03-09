@@ -2,24 +2,25 @@ const crypto = require("node:crypto");
 
 /**
  * @template T
- * @typedef {import('..').Store<T>} Store
+ * @typedef {import('.').InMemoryStore<T>} Store
  */
 
 /**
+ * @typedef {import('.').IdType} IdType
  * @typedef {import('..').StoreOptions} StoreOptions
  */
 
-const DEFAULT_ID_FIELD = "id";
+const { DEFAULT_ID_FIELD } = require("../defaults");
 
 /**
  * Creates an in-memory store implementation.
  * @template T
  * @param {StoreOptions} [options]
- * @returns {Store<T>}
+ * @returns {InMemoryStore<T>}
  */
 const inMemory = (options) => {
-  const idField = (options && options.idField) || DEFAULT_ID_FIELD;
-  /** @type {Map<string, T>} */
+  const { idField = DEFAULT_ID_FIELD } = options || {};
+  /** @type {Map<IdType, T>} */
   const map = new Map();
 
   /**
@@ -35,7 +36,7 @@ const inMemory = (options) => {
   };
 
   /**
-   * @param {string} id
+   * @param {IdType} id
    * @returns {Promise<T | undefined>}
    */
   const get = async (id) => map.get(id);
@@ -44,7 +45,7 @@ const inMemory = (options) => {
   const list = async () => Array.from(map.values());
 
   /**
-   * @param {string} id
+   * @param {IdType} id
    * @param {Partial<T>} updates
    * @returns {Promise<T | undefined>}
    */
@@ -58,7 +59,7 @@ const inMemory = (options) => {
   };
 
   /**
-   * @param {string} id
+   * @param {IdType} id
    * @returns {Promise<boolean>}
    */
   const remove = async (id) => map.delete(id);

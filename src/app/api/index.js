@@ -1,21 +1,27 @@
+const { authRouter } = require("./auth");
+const { authMiddleware } = require("../../middleware/auth");
 
 /**
- * @typedef {import('../../http/server/router').Router} Router
- * @typedef {import('../../http/server/router').RouterFactory} RouterFactory
- * @typedef {import('../../config').Config} Config
+ * @typedef {import('../context').AppContext} AppContext
+ * @typedef {import('../../lib/http/server/router').RouterFactory} RouterFactory
  */
 
 /**
- * Creates and configures the API router.
- * @param {Config} config - The application configuration object.
- * @returns {RouterFactory} The configured API router.
+ * @param {AppContext} ctx
+ * @returns {RouterFactory}
  */
-const apiRouter = (config) => {  
-  return (router) => {
-    router.get("/hello", async (req, res) => {
-      res.text("Hello, World! from API");
-    });
-  };
+const apiRouter = (ctx) => (router) => {
+  const secret = ctx.config.getRequired("auth.secret");
+
+  // Public + protected auth routes (middleware is applied inside authRouter)
+  router.use("/auth", authRouter(ctx));
+
+  // Auth middleware applies to all routes registered after this point
+  router.use(authMiddleware(secret));
+
+  router.get("/hello", async (req, res) => {
+    res.json({ message: "Hello, World!" });
+  });
 };
 
 module.exports = { apiRouter };

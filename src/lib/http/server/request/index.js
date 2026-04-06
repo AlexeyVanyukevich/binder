@@ -11,7 +11,7 @@ const MAX_BODY_SIZE = 1024 * 1024; // 1MB limit
  * @returns {ServerRequest}
  */
 const request = (incomingMessage) => {
-  const url = new URL(incomingMessage.url ?? "/");
+  const url = new URL(incomingMessage.url ?? "/", "http://localhost");
   /**
    * Retrieves and parses the request body.
    * @param {ParseBodyOptions} [options]
